@@ -24,6 +24,7 @@ function jwtRole(value: string): string | null {
 function resolveServiceRoleKey(): string {
   const candidates=[
     process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.supabase,
     process.env.supabase2,
     process.env.supabeto1,
   ].map(v=>v?.trim()).filter((v):v is string=>!!v);
