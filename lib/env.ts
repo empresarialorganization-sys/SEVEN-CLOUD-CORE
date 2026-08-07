@@ -12,9 +12,31 @@ const PUBLIC_DEFAULTS = {
   workspaceKeyHash: "ec7166cf6c2ad6fa57711a0555434cf6c36282f0c774f3604f35decfab1c7cda",
 };
 
+function jwtRole(value: string): string | null {
+  try {
+    const parts=value.split("."); if(parts.length<2) return null;
+    const raw=parts[1].replace(/-/g,"+").replace(/_/g,"/");
+    const json=Buffer.from(raw,"base64").toString("utf8");
+    return JSON.parse(json)?.role || null;
+  } catch { return null; }
+}
+
+function resolveServiceRoleKey(): string {
+  const candidates=[
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.supabase2,
+    process.env.supabeto1,
+  ].map(v=>v?.trim()).filter((v):v is string=>!!v);
+  const modern=candidates.find(v=>v.startsWith("sb_secret_"));
+  if(modern) return modern;
+  const legacy=candidates.find(v=>jwtRole(v)==="service_role");
+  if(legacy) return legacy;
+  return required("SUPABASE_SERVICE_ROLE_KEY");
+}
+
 export const env = {
   get supabaseUrl() { return process.env.SUPABASE_URL?.trim() || PUBLIC_DEFAULTS.supabaseUrl; },
-  get serviceRoleKey() { return required("SUPABASE_SERVICE_ROLE_KEY"); },
+  get serviceRoleKey() { return resolveServiceRoleKey(); },
   get workspaceId() { return process.env.SEVEN_WORKSPACE_ID?.trim() || PUBLIC_DEFAULTS.workspaceId; },
   get workspaceKeyHash() { return (process.env.SEVEN_WORKSPACE_KEY_HASH?.trim() || PUBLIC_DEFAULTS.workspaceKeyHash).toLowerCase(); },
   get bucket() { return process.env.SEVEN_STORAGE_BUCKET?.trim() || "seven-vault"; },
