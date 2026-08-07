@@ -32,6 +32,7 @@ export async function GET(request: Request){
   } catch {}
   const credentials={
     SUPABASE_SERVICE_ROLE_KEY: classify(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    supabase1: classify(process.env.supabase1),
     supabase: classify(process.env.supabase),
     supabase2: classify(process.env.supabase2),
     supabeto1: classify(process.env.supabeto1),
