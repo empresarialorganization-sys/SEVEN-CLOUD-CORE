@@ -1,0 +1,17 @@
+import fs from "node:fs";
+import crypto from "node:crypto";
+import path from "node:path";
+const root=path.resolve(new URL("..",import.meta.url).pathname);
+let fail=0;const pass=(x,m)=>{console.log(`${x?"PASS":"FAIL"} - ${m}`);if(!x)fail++;};
+const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const pkg=JSON.parse(read("package.json"));
+pass(pkg.version==="0.8.0","package version 0.8.0");
+pass(pkg.dependencies["mcp-handler"],"mcp-handler dependency present");
+pass(fs.existsSync(path.join(root,"app/mcp/route.ts")),"/mcp route exists");
+for(const p of ["pair/register","extension/poll","extension/result","extension/heartbeat","vault/prepare-upload","vault/finalize"]) pass(fs.existsSync(path.join(root,`app/api/v1/${p}/route.ts`)),`API ${p}`);
+const env=read(".env.example");pass(!/sk-|eyJ[A-Za-z0-9_-]{20,}/.test(env),"no obvious real secret in env example");
+const mcp=read("app/mcp/route.ts");for(const t of ["seven_pair","seven_status","seven_vision","seven_mission","seven_dev_status","seven_dev_list","seven_dev_search","seven_dev_read","seven_dev_write","seven_dev_run","seven_dev_process","seven_dev_git_status","seven_dev_git_diff","seven_vault_search","seven_vault_fetch"])pass(mcp.includes(`\"${t}\"`),`MCP tool ${t}`);
+pass(mcp.includes('type:\"image\"'),"Vault fetch can return MCP image bytes");
+const migrationDir=path.join(root,"supabase/migrations");const sql=fs.readdirSync(migrationDir).filter(x=>x.endsWith(".sql")).sort().map(x=>fs.readFileSync(path.join(migrationDir,x),"utf8")).join("\n");pass((sql.match(/enable row level security/g)||[]).length>=8,"RLS enabled on private tables");pass(/values\s*\(\s*['"]seven-vault['"]\s*,\s*['"]seven-vault['"]\s*,\s*false/i.test(sql),"Vault bucket is private");pass(sql.includes("seven_vault_assets_workspace_sha256_uidx"),"Vault SHA dedupe index");pass(sql.includes("seven_vault_search"),"Vault search RPC migration present");
+const files=fs.readdirSync(root,{recursive:true}).filter(x=>typeof x==="string"&&/\.(ts|tsx|md|json|sql)$/.test(x));const all=files.map(x=>read(x)).join("\n");pass(!all.includes("seven-live-bridge.lovable.app"),"Lovable removed from Cloud Core dependency path");
+const digest=crypto.createHash("sha256").update(all).digest("hex");console.log(`TREE_SHA256=${digest}`);process.exit(fail?1:0);

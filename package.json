@@ -1,0 +1,26 @@
+{
+  "name": "seven-cloud-core",
+  "version": "0.8.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "type-check": "tsc --noEmit",
+    "validate": "node scripts/validate.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.56.0",
+    "mcp-handler": "^1.0.5",
+    "next": "^15.2.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}
